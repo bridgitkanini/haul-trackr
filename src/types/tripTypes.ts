@@ -4,9 +4,16 @@ export interface TripData {
   dropoffLocation: string;
   currentCycleHours: number;
   startTime?: Date;
+  truckNumber?: string;
+  odometerStart?: number;
+  odometerEnd?: number;
+  distance?: number;
+  driverName?: string;
+  driverId?: string;
+  isCertified?: boolean;
 }
 export interface RoutePoint {
-  type: 'pickup' | 'dropoff' | 'rest' | 'fuel';
+  type: "pickup" | "dropoff" | "rest" | "fuel";
   location: string;
   coordinates: [number, number];
   time: Date;

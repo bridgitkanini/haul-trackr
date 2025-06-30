@@ -15,6 +15,14 @@ interface EldLogsPageProps {
   tripData: TripData;
 }
 
+interface LogEntry {
+  start: string;
+  end: string;
+  status: string;
+  location: string;
+  notes: string;
+}
+
 const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
   const [logs, setLogs] = useState<any[]>([]);
   const [currentDay, setCurrentDay] = useState(0);
@@ -208,7 +216,7 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
                 </tr>
               </thead>
               <tbody>
-                {log?.entries.map((entry, index) => (
+                {log?.entries.map((entry: LogEntry, index: number) => (
                   <tr
                     key={index}
                     className={
@@ -280,20 +288,24 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Truck #:</span>{" "}
-                    {tripData.truckNumber}
+                    <span className="font-medium">Carrier Name:</span>{" "}
+                    {log?.carrier_name || "N/A"}
+                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    <span className="font-medium">Carrier Address:</span>{" "}
+                    {log?.carrier_address || "N/A"}
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
                     <span className="font-medium">Odometer Start:</span>{" "}
-                    {tripData.odometerStart || 0} mi
+                    {log?.starting_odometer ?? "N/A"}
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
                     <span className="font-medium">Odometer End:</span>{" "}
-                    {tripData.odometerEnd || 0} mi
+                    {log?.ending_odometer ?? "N/A"}
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Distance:</span>{" "}
-                    {tripData.distance || 0} mi
+                    <span className="font-medium">Total Miles:</span>{" "}
+                    {log?.total_miles ?? "N/A"}
                   </p>
                 </div>
               </div>
@@ -304,20 +316,24 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Driver:</span>{" "}
-                    {tripData.driverName}
+                    <span className="font-medium">Driver:</span> N/A
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Driver ID:</span>{" "}
-                    {tripData.driverId}
+                    <span className="font-medium">Driver ID:</span> N/A
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Certified:</span>{" "}
-                    {tripData.isCertified ? "Yes" : "No"}
+                    <span className="font-medium">Certified:</span> N/A
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Timestamp:</span> {log?.date}{" "}
-                    {log?.endTime}
+                    <span className="font-medium">Driver Signature:</span>{" "}
+                    {log?.driver_signature || "N/A"}
+                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    <span className="font-medium">Notes:</span>{" "}
+                    {log?.notes || "N/A"}
+                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    <span className="font-medium">Timestamp:</span> {log?.date}
                   </p>
                 </div>
               </div>
