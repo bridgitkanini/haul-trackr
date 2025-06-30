@@ -25,7 +25,7 @@ export const register = (data: {
   username: string;
   password: string;
   email: string;
-}) => api.post("/users/register/", data);
+}) => api.post("/register/", data);
 
 export const login = (data: { username: string; password: string }) =>
   api.post("/token/", data);
