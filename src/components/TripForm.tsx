@@ -25,8 +25,15 @@ const TripForm: React.FC<TripFormProps> = ({ onSubmit }) => {
     e.preventDefault();
     setIsLoading(true);
     try {
+      // Map formData to backend snake_case keys
+      const payload = {
+        current_location: formData.currentLocation,
+        pickup_location: formData.pickupLocation,
+        dropoff_location: formData.dropoffLocation,
+        current_cycle_hours: formData.currentCycleHours,
+      };
       // 1. Create the trip
-      const tripRes = await createTrip(formData);
+      const tripRes = await createTrip(payload);
       const tripId = tripRes.data.id;
       // 2. Plan the trip (generate route, stops, etc.)
       await planTrip(tripId);
