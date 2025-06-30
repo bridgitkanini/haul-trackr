@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -12,9 +12,32 @@ import EldLogsPage from "./pages/EldLogsPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import { TripData } from "./types/tripTypes";
+import { getTrips } from "./lib/api";
 
 export function App() {
   const [tripData, setTripData] = useState<TripData | null>(null);
+  const [loadingTrip, setLoadingTrip] = useState(false);
+
+  // Fallback: fetch latest trip if tripData is missing and user is authenticated
+  useEffect(() => {
+    async function fetchLatestTrip() {
+      if (!tripData && isAuthenticated()) {
+        setLoadingTrip(true);
+        try {
+          const res = await getTrips();
+          if (res.data && res.data.length > 0) {
+            setTripData(res.data[res.data.length - 1]); // Use the latest trip
+          }
+        } catch {
+          /* ignore error */
+        }
+        setLoadingTrip(false);
+      }
+    }
+    fetchLatestTrip();
+    // eslint-disable-next-line
+  }, []);
+
   const handleTripSubmit = (data: TripData) => {
     setTripData(data);
   };
@@ -54,8 +77,18 @@ export function App() {
             <Route
               path="/eld-logs"
               element={
-                isAuthenticated() && tripData ? (
-                  <EldLogsPage tripData={tripData} />
+                isAuthenticated() ? (
+                  tripData ? (
+                    <EldLogsPage tripData={tripData} />
+                  ) : loadingTrip ? (
+                    <div className="flex justify-center items-center h-64 text-lg">
+                      Loading trip data...
+                    </div>
+                  ) : (
+                    <div className="flex justify-center items-center h-64 text-lg text-red-600">
+                      No trip data found.
+                    </div>
+                  )
                 ) : (
                   <Navigate to="/login" />
                 )
