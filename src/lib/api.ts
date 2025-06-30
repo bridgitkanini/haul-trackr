@@ -53,4 +53,29 @@ export const getLog = (id: string | number) => api.get(`/logs/${id}/`);
 export const getLogGrid = (id: string | number) =>
   api.get(`/logs/${id}/grid/`, { responseType: "blob" });
 
+// --- Duty Status Management ---
+export const getDutyStatusList = () => api.get("/duty-status/");
+export const createDutyStatus = (data: any) => api.post("/duty-status/", data);
+export const getDutyStatus = (id: string | number) =>
+  api.get(`/duty-status/${id}/`);
+export const updateDutyStatus = (id: string | number, data: any) =>
+  api.put(`/duty-status/${id}/`, data);
+export const partialUpdateDutyStatus = (id: string | number, data: any) =>
+  api.patch(`/duty-status/${id}/`, data);
+export const deleteDutyStatus = (id: string | number) =>
+  api.delete(`/duty-status/${id}/`);
+
+// --- LogSheet Management ---
+export const getLogSheets = () => api.get("/logs/");
+export const createLogSheet = (data: any) => api.post("/logs/", data);
+export const getLogSheet = (id: string | number) => api.get(`/logs/${id}/`);
+export const updateLogSheet = (id: string | number, data: any) =>
+  api.put(`/logs/${id}/`, data);
+export const partialUpdateLogSheet = (id: string | number, data: any) =>
+  api.patch(`/logs/${id}/`, data);
+export const deleteLogSheet = (id: string | number) =>
+  api.delete(`/logs/${id}/`);
+export const getLogSheetGrid = (id: string | number) =>
+  api.get(`/logs/${id}/grid/`, { responseType: "blob" });
+
 export default api;
