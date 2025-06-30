@@ -22,7 +22,7 @@ const HomePage: React.FC<HomePageProps> = ({ onTripSubmit }) => {
         </div>
         {/* Mobile Left Green Circle */}
         <div className="md:hidden absolute -left-6 top-4 z-0">
-          <div className="w-16 h-16 bg-teal-700 rounded-full opacity-90"></div>
+          <div className="w-24 h-24 bg-[#14B8A6] rounded-full opacity-90"></div>
         </div>
         <div className="w-full max-w-4xl px-4 relative z-10">
           <img
@@ -38,7 +38,7 @@ const HomePage: React.FC<HomePageProps> = ({ onTripSubmit }) => {
         </div>
         {/* Mobile Right Green Circle */}
         <div className="md:hidden absolute -right-6 bottom-4 z-0">
-          <div className="w-16 h-16 bg-teal-700 rounded-full opacity-90"></div>
+          <div className="w-32 h-32 bg-teal-700 rounded-full opacity-90"></div>
         </div>
       </div>
       {/* Main Content */}
