@@ -67,8 +67,18 @@ export function App() {
             <Route
               path="/route-details"
               element={
-                isAuthenticated() && tripData ? (
-                  <RouteDetailsPage tripData={tripData} />
+                isAuthenticated() ? (
+                  tripData ? (
+                    <RouteDetailsPage tripData={tripData} />
+                  ) : loadingTrip ? (
+                    <div className="flex justify-center items-center h-64 text-lg">
+                      Loading trip data...
+                    </div>
+                  ) : (
+                    <div className="flex justify-center items-center h-64 text-lg text-red-600">
+                      No trip data found.
+                    </div>
+                  )
                 ) : (
                   <Navigate to="/login" />
                 )
