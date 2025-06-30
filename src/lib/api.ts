@@ -40,7 +40,8 @@ export const getTrips = () => api.get("/trips/");
 
 export const getTrip = (id: string | number) => api.get(`/trips/${id}/`);
 
-export const planTrip = (id: string | number) => api.post(`/trips/${id}/plan/`);
+export const planTrip = (id: string | number, data: any) =>
+  api.post(`/trips/${id}/plan/`, data);
 
 // --- Log Management ---
 export const generateLogs = (tripId: string | number) =>
