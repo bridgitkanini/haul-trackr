@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "axios": "^1.10.0",
     "clsx": "latest",
     "leaflet": "latest",
     "lucide-react": "latest",
@@ -19,6 +20,7 @@
     "tailwind-merge": "latest"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.4",
     "@types/node": "^20.11.18",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
