@@ -53,21 +53,8 @@ const Header: React.FC = () => {
             <Truck className="h-6 w-6" />
             <span className="text-xl font-bold">TruckRoute Pro</span>
           </Link>
-          <div className="flex items-center">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-teal-600 dark:hover:bg-slate-700 focus:outline-none"
-              aria-label={
-                isDarkMode ? "Switch to light mode" : "Switch to dark mode"
-              }
-            >
-              {isDarkMode ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-            </button>
-            <div className="hidden md:flex items-center space-x-4 ml-6">
+          <div className="hidden md:flex flex-1 justify-center items-center">
+            <nav className="flex items-center space-x-8">
               <Link
                 to="/"
                 className={`hover:text-teal-200 ${
@@ -92,7 +79,22 @@ const Header: React.FC = () => {
               >
                 ELD Logs
               </Link>
-            </div>
+            </nav>
+          </div>
+          <div className="flex items-center">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-teal-600 dark:hover:bg-slate-700 focus:outline-none"
+              aria-label={
+                isDarkMode ? "Switch to light mode" : "Switch to dark mode"
+              }
+            >
+              {isDarkMode ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </button>
             {isAuthenticated && (
               <div className="flex items-center space-x-4 ml-6">
                 {username && (
