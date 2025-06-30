@@ -20,6 +20,70 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle 401 errors and refresh token if possible
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+function processQueue(error: any, token: string | null = null) {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+}
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !originalRequest._retry
+    ) {
+      if (localStorage.getItem("refresh_token")) {
+        if (isRefreshing) {
+          return new Promise(function (resolve, reject) {
+            failedQueue.push({ resolve, reject });
+          })
+            .then((token) => {
+              originalRequest.headers["Authorization"] = "Bearer " + token;
+              return api(originalRequest);
+            })
+            .catch((err) => Promise.reject(err));
+        }
+        originalRequest._retry = true;
+        isRefreshing = true;
+        try {
+          const refresh = localStorage.getItem("refresh_token");
+          const res = await api.post("/token/refresh/", { refresh });
+          localStorage.setItem("access_token", res.data.access);
+          api.defaults.headers.common["Authorization"] =
+            "Bearer " + res.data.access;
+          processQueue(null, res.data.access);
+          return api(originalRequest);
+        } catch (err) {
+          processQueue(err, null);
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          window.location.href = "/login";
+          return Promise.reject(err);
+        } finally {
+          isRefreshing = false;
+        }
+      } else {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // --- Auth ---
 export const register = (data: {
   username: string;
