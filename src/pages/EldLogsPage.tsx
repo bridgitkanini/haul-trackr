@@ -7,9 +7,11 @@ import {
   Calendar,
   Clock,
   Truck,
+  Info,
 } from "lucide-react";
 import { TripData } from "../types/tripTypes";
 import { getLogs, generateLogs, getLog, getLogGrid } from "../lib/api";
+import api from "../lib/api";
 
 interface EldLogsPageProps {
   tripData: TripData;
@@ -28,10 +30,15 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
   const [logGrids, setLogGrids] = useState<(string | null)[]>([]);
   const [currentDay, setCurrentDay] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     const fetchLogs = async () => {
       setIsLoading(true);
+      setError(null);
+      setSuccess(null);
       try {
         // Generate logs for the trip (if not already generated)
         await generateLogs((tripData as any).id);
@@ -62,7 +69,7 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
         setIsLoading(false);
       } catch (err) {
         setIsLoading(false);
-        alert("Failed to fetch ELD logs.");
+        setError("Failed to fetch ELD logs.");
       }
     };
     if ((tripData as any).id) {
@@ -94,12 +101,42 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
         return "bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200";
     }
   };
-  const downloadPdf = () => {
-    alert("PDF download functionality would be implemented here");
+
+  // PDF Download
+  const handleDownloadPdf = async () => {
+    if (!log) return;
+    setDownloading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      // Try to fetch PDF from backend (assume /logs/{id}/pdf/ endpoint)
+      const res = await api.get(`/logs/${log.id}/pdf/`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(
+        new Blob([res.data], { type: "application/pdf" })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `eld-log-${log.date}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      setSuccess("PDF downloaded successfully.");
+    } catch {
+      setError("PDF download not available.");
+    }
+    setDownloading(false);
   };
+
   return (
     <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
       <div className="container mx-auto px-4 py-8">
+        {/* Error/Success Feedback */}
+        {error && <div className="mb-4 text-red-600 text-center">{error}</div>}
+        {success && (
+          <div className="mb-4 text-green-600 text-center">{success}</div>
+        )}
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
@@ -109,43 +146,81 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
               Trip from {tripData.pickupLocation} to {tripData.dropoffLocation}
             </p>
           </div>
-          <button
-            onClick={downloadPdf}
-            className="mt-4 md:mt-0 flex items-center px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download PDF
-          </button>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <button
-              onClick={handlePreviousDay}
-              disabled={currentDay === 0}
-              className={`p-2 rounded-md ${
-                currentDay === 0
-                  ? "bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed"
-                  : "bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600"
-              }`}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <div className="flex items-center">
-              <Calendar className="h-5 w-5 text-teal-600 dark:text-teal-500 mr-2" />
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                Day {currentDay + 1} - {log?.date}
-              </h2>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div className="flex items-center mb-4 md:mb-0">
+              <button
+                onClick={handlePreviousDay}
+                disabled={currentDay === 0}
+                className={`p-2 rounded-md ${
+                  currentDay === 0
+                    ? "bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                    : "bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600"
+                }`}
+                title="Previous Day"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <div className="flex items-center ml-4">
+                <Calendar className="h-5 w-5 text-teal-600 dark:text-teal-500 mr-2" />
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+                  Day {currentDay + 1} of {logs.length} - {log?.date}
+                </h2>
+                <span
+                  className="ml-2"
+                  title="Each day represents a separate log sheet."
+                >
+                  <Info className="h-4 w-4 text-slate-400" />
+                </span>
+              </div>
+              <button
+                onClick={handleNextDay}
+                disabled={currentDay === logs.length - 1}
+                className={`ml-4 p-2 rounded-md ${
+                  currentDay === logs.length - 1
+                    ? "bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                    : "bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600"
+                }`}
+                title="Next Day"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
             </div>
             <button
-              onClick={handleNextDay}
-              disabled={currentDay === logs.length - 1}
-              className={`p-2 rounded-md ${
-                currentDay === logs.length - 1
-                  ? "bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed"
-                  : "bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600"
-              }`}
+              onClick={handleDownloadPdf}
+              disabled={downloading || !log}
+              className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:opacity-60 disabled:cursor-not-allowed"
+              title="Download this day's log as PDF"
             >
-              <ChevronRight className="h-5 w-5" />
+              {downloading ? (
+                <span className="flex items-center">
+                  <svg
+                    className="animate-spin h-4 w-4 mr-2"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Downloading...
+                </span>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </>
+              )}
             </button>
           </div>
           <div className="mb-8">
