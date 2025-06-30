@@ -1,110 +1,71 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { MapPin, Clock, Ruler, Truck, Calendar, Coffee } from 'lucide-react';
-import { TripData, RouteData, RoutePoint } from '../types/tripTypes';
-import RouteMap from '../components/RouteMap';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { MapPin, Clock, Ruler, Truck, Calendar, Coffee } from "lucide-react";
+import { TripData, RouteData, RoutePoint } from "../types/tripTypes";
+import RouteMap from "../components/RouteMap";
 interface RouteDetailsPageProps {
   tripData: TripData;
 }
-const RouteDetailsPage: React.FC<RouteDetailsPageProps> = ({
-  tripData
-}) => {
+const RouteDetailsPage: React.FC<RouteDetailsPageProps> = ({ tripData }) => {
   const [routeData, setRouteData] = useState<RouteData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
-    // In a real app, this would be an API call to a routing service
-    const generateMockRouteData = () => {
-      const mockPoints: RoutePoint[] = [{
-        type: 'pickup',
-        location: tripData.pickupLocation,
-        coordinates: [40.7128, -74.006],
-        // NYC coordinates as example
-        time: new Date(),
-        duration: 60 // 1 hour for pickup
-      }, {
-        type: 'rest',
-        location: 'Rest Area - I-80 Mile Marker 295',
-        coordinates: [41.5, -77.5],
-        // Somewhere in PA
-        time: new Date(Date.now() + 4 * 60 * 60 * 1000),
-        // 4 hours later
-        duration: 30 // 30 min rest
-      }, {
-        type: 'fuel',
-        location: 'Pilot Travel Center - Cleveland, OH',
-        coordinates: [41.4993, -81.6944],
-        // Cleveland coordinates
-        time: new Date(Date.now() + 8 * 60 * 60 * 1000),
-        // 8 hours later
-        duration: 45 // 45 min for fueling
-      }, {
-        type: 'rest',
-        location: 'TA Travel Center - Chicago, IL',
-        coordinates: [41.8781, -87.6298],
-        // Chicago coordinates
-        time: new Date(Date.now() + 14 * 60 * 60 * 1000),
-        // 14 hours later
-        duration: 600 // 10 hour rest break
-      }, {
-        type: 'dropoff',
-        location: tripData.dropoffLocation,
-        coordinates: [44.9778, -93.265],
-        // Minneapolis coordinates as example
-        time: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        // 24 hours later
-        duration: 60 // 1 hour for dropoff
-      }];
-      const mockRouteData: RouteData = {
-        points: mockPoints,
-        totalDistance: 1245,
-        // miles
-        totalDuration: 24 // hours
-      };
-      return mockRouteData;
-    };
-    // Simulate API call delay
-    setTimeout(() => {
-      const data = generateMockRouteData();
-      setRouteData(data);
+    // Use the planned trip data directly
+    if (tripData && (tripData as any).route) {
+      setRouteData((tripData as any).route);
       setIsLoading(false);
-    }, 1500);
+    } else {
+      setIsLoading(false);
+    }
   }, [tripData]);
   if (isLoading) {
-    return <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
           <p className="mt-4 text-lg text-slate-700 dark:text-slate-300">
             Calculating optimal route...
           </p>
         </div>
-      </div>;
+      </div>
+    );
   }
   if (!routeData) {
-    return <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
         <div className="text-center">
           <p className="text-lg text-red-600 dark:text-red-400">
             Error generating route data. Please try again.
           </p>
-          <Link to="/" className="mt-4 inline-block px-4 py-2 bg-teal-600 text-white rounded-md">
+          <Link
+            to="/"
+            className="mt-4 inline-block px-4 py-2 bg-teal-600 text-white rounded-md"
+          >
             Back to Home
           </Link>
         </div>
-      </div>;
+      </div>
+    );
   }
   // Format the date
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
   // Count stops by type
-  const restStops = routeData.points.filter(point => point.type === 'rest').length;
-  const fuelStops = routeData.points.filter(point => point.type === 'fuel').length;
-  return <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
+  const restStops = routeData.points.filter(
+    (point) => point.type === "rest"
+  ).length;
+  const fuelStops = routeData.points.filter(
+    (point) => point.type === "fuel"
+  ).length;
+  return (
+    <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
@@ -162,12 +123,14 @@ const RouteDetailsPage: React.FC<RouteDetailsPageProps> = ({
                     </p>
                     <div>
                       <p className="text-slate-900 dark:text-white">
-                        <span className="font-medium">Pickup:</span>{' '}
+                        <span className="font-medium">Pickup:</span>{" "}
                         {formatDate(routeData.points[0].time)}
                       </p>
                       <p className="text-slate-900 dark:text-white">
-                        <span className="font-medium">Drop-off:</span>{' '}
-                        {formatDate(routeData.points[routeData.points.length - 1].time)}
+                        <span className="font-medium">Drop-off:</span>{" "}
+                        {formatDate(
+                          routeData.points[routeData.points.length - 1].time
+                        )}
                       </p>
                     </div>
                   </div>
@@ -204,12 +167,21 @@ const RouteDetailsPage: React.FC<RouteDetailsPageProps> = ({
                   Route Points
                 </h3>
                 <div className="space-y-4">
-                  {routeData.points.map((point, index) => <div key={index} className="flex items-start">
+                  {routeData.points.map((point, index) => (
+                    <div key={index} className="flex items-start">
                       <div className="flex-shrink-0 mt-1">
-                        {point.type === 'pickup' && <MapPin className="h-5 w-5 text-green-600" />}
-                        {point.type === 'dropoff' && <MapPin className="h-5 w-5 text-red-600" />}
-                        {point.type === 'rest' && <Coffee className="h-5 w-5 text-blue-600" />}
-                        {point.type === 'fuel' && <div className="h-5 w-5 text-yellow-600" />}
+                        {point.type === "pickup" && (
+                          <MapPin className="h-5 w-5 text-green-600" />
+                        )}
+                        {point.type === "dropoff" && (
+                          <MapPin className="h-5 w-5 text-red-600" />
+                        )}
+                        {point.type === "rest" && (
+                          <Coffee className="h-5 w-5 text-blue-600" />
+                        )}
+                        {point.type === "fuel" && (
+                          <div className="h-5 w-5 text-yellow-600" />
+                        )}
                       </div>
                       <div className="ml-3">
                         <p className="text-slate-900 dark:text-white font-medium">
@@ -217,17 +189,29 @@ const RouteDetailsPage: React.FC<RouteDetailsPageProps> = ({
                         </p>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                           {formatDate(point.time)}
-                          {point.duration && ` (${point.duration >= 60 ? `${point.duration / 60} hr` : `${point.duration} min`})`}
+                          {point.duration &&
+                            ` (${
+                              point.duration >= 60
+                                ? `${point.duration / 60} hr`
+                                : `${point.duration} min`
+                            })`}
                         </p>
                       </div>
-                    </div>)}
+                    </div>
+                  ))}
                 </div>
               </div>
               <div className="mt-8 flex justify-between">
-                <Link to="/" className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-md hover:bg-slate-300 dark:hover:bg-slate-600">
+                <Link
+                  to="/"
+                  className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-md hover:bg-slate-300 dark:hover:bg-slate-600"
+                >
                   Back to Home
                 </Link>
-                <Link to="/eld-logs" className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700">
+                <Link
+                  to="/eld-logs"
+                  className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700"
+                >
                   View ELD Logs
                 </Link>
               </div>
@@ -235,6 +219,7 @@ const RouteDetailsPage: React.FC<RouteDetailsPageProps> = ({
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 export default RouteDetailsPage;

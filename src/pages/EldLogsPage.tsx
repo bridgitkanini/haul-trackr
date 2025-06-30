@@ -1,199 +1,77 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Download, ChevronLeft, ChevronRight, Calendar, Clock, Truck } from 'lucide-react';
-import { TripData } from '../types/tripTypes';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Clock,
+  Truck,
+} from "lucide-react";
+import { TripData } from "../types/tripTypes";
+import { getLogs, generateLogs, getLog } from "../lib/api";
+
 interface EldLogsPageProps {
   tripData: TripData;
 }
-const EldLogsPage: React.FC<EldLogsPageProps> = ({
-  tripData
-}) => {
+
+const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
+  const [logs, setLogs] = useState<any[]>([]);
   const [currentDay, setCurrentDay] = useState(0);
-  const totalDays = 3; // Mock data for a 3-day trip
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      setIsLoading(true);
+      try {
+        // Generate logs for the trip (if not already generated)
+        await generateLogs((tripData as any).id);
+        // Fetch all logs for this trip
+        const allLogsRes = await getLogs();
+        // Filter logs for this trip
+        const tripLogs = allLogsRes.data.filter(
+          (log: any) => log.trip === (tripData as any).id
+        );
+        setLogs(tripLogs);
+        setIsLoading(false);
+      } catch (err) {
+        setIsLoading(false);
+        alert("Failed to fetch ELD logs.");
+      }
+    };
+    if ((tripData as any).id) {
+      fetchLogs();
+    }
+  }, [tripData]);
+
   const handlePreviousDay = () => {
-    setCurrentDay(prev => Math.max(0, prev - 1));
+    setCurrentDay((prev) => Math.max(0, prev - 1));
   };
   const handleNextDay = () => {
-    setCurrentDay(prev => Math.min(totalDays - 1, prev + 1));
+    setCurrentDay((prev) => Math.min(logs.length - 1, prev + 1));
   };
-  const generateMockEldData = (day: number) => {
-    const startDate = tripData.startTime || new Date();
-    const currentDate = new Date(startDate);
-    currentDate.setDate(currentDate.getDate() + day);
-    // Format date as MM/DD/YYYY
-    const formattedDate = currentDate.toLocaleDateString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric'
-    });
-    // Generate different log entries based on the day
-    let logEntries = [];
-    if (day === 0) {
-      // First day - pickup and initial driving
-      logEntries = [{
-        start: '06:00',
-        end: '07:00',
-        status: 'On Duty',
-        location: tripData.pickupLocation,
-        notes: 'Pre-trip inspection & loading'
-      }, {
-        start: '07:00',
-        end: '11:00',
-        status: 'Driving',
-        location: 'I-80 E',
-        notes: 'En route'
-      }, {
-        start: '11:00',
-        end: '11:30',
-        status: 'On Duty',
-        location: 'Rest Area - I-80 Mile Marker 295',
-        notes: 'Break'
-      }, {
-        start: '11:30',
-        end: '15:30',
-        status: 'Driving',
-        location: 'I-80 E',
-        notes: 'En route'
-      }, {
-        start: '15:30',
-        end: '16:15',
-        status: 'On Duty',
-        location: 'Pilot Travel Center',
-        notes: 'Fueling & break'
-      }, {
-        start: '16:15',
-        end: '20:15',
-        status: 'Driving',
-        location: 'I-80 E',
-        notes: 'En route'
-      }, {
-        start: '20:15',
-        end: '06:15',
-        status: 'Sleeper',
-        location: 'TA Travel Center',
-        notes: '10-hour rest period'
-      }];
-    } else if (day === 1) {
-      // Second day - full driving day
-      logEntries = [{
-        start: '06:15',
-        end: '06:45',
-        status: 'On Duty',
-        location: 'TA Travel Center',
-        notes: 'Pre-trip inspection'
-      }, {
-        start: '06:45',
-        end: '10:45',
-        status: 'Driving',
-        location: 'I-80 E',
-        notes: 'En route'
-      }, {
-        start: '10:45',
-        end: '11:15',
-        status: 'On Duty',
-        location: 'Rest Area',
-        notes: 'Break'
-      }, {
-        start: '11:15',
-        end: '15:15',
-        status: 'Driving',
-        location: 'I-80 E',
-        notes: 'En route'
-      }, {
-        start: '15:15',
-        end: '16:00',
-        status: 'On Duty',
-        location: 'Flying J Travel Center',
-        notes: 'Fueling & break'
-      }, {
-        start: '16:00',
-        end: '20:00',
-        status: 'Driving',
-        location: 'I-80 E',
-        notes: 'En route'
-      }, {
-        start: '20:00',
-        end: '06:00',
-        status: 'Sleeper',
-        location: 'Rest Area',
-        notes: '10-hour rest period'
-      }];
-    } else {
-      // Third day - arrival and delivery
-      logEntries = [{
-        start: '06:00',
-        end: '06:30',
-        status: 'On Duty',
-        location: 'Rest Area',
-        notes: 'Pre-trip inspection'
-      }, {
-        start: '06:30',
-        end: '10:30',
-        status: 'Driving',
-        location: 'I-80 E',
-        notes: 'En route'
-      }, {
-        start: '10:30',
-        end: '11:00',
-        status: 'On Duty',
-        location: 'Rest Area',
-        notes: 'Break'
-      }, {
-        start: '11:00',
-        end: '13:00',
-        status: 'Driving',
-        location: 'Local Roads',
-        notes: 'Approaching destination'
-      }, {
-        start: '13:00',
-        end: '14:00',
-        status: 'On Duty',
-        location: tripData.dropoffLocation,
-        notes: 'Delivery & unloading'
-      }, {
-        start: '14:00',
-        end: '14:30',
-        status: 'Off Duty',
-        location: tripData.dropoffLocation,
-        notes: 'Break'
-      }, {
-        start: '14:30',
-        end: '18:30',
-        status: 'Driving',
-        location: 'Return Route',
-        notes: 'Returning to base'
-      }, {
-        start: '18:30',
-        end: '06:00',
-        status: 'Off Duty',
-        location: 'Home Terminal',
-        notes: 'End of shift'
-      }];
-    }
-    return {
-      date: formattedDate,
-      entries: logEntries
-    };
-  };
-  const eldData = generateMockEldData(currentDay);
+
+  const log = logs[currentDay];
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Driving':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'On Duty':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'Off Duty':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'Sleeper':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      case "Driving":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "On Duty":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "Off Duty":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "Sleeper":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
       default:
-        return 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200';
+        return "bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200";
     }
   };
   const downloadPdf = () => {
-    alert('PDF download functionality would be implemented here');
+    alert("PDF download functionality would be implemented here");
   };
-  return <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
+  return (
+    <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
@@ -204,23 +82,42 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({
               Trip from {tripData.pickupLocation} to {tripData.dropoffLocation}
             </p>
           </div>
-          <button onClick={downloadPdf} className="mt-4 md:mt-0 flex items-center px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700">
+          <button
+            onClick={downloadPdf}
+            className="mt-4 md:mt-0 flex items-center px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700"
+          >
             <Download className="h-4 w-4 mr-2" />
             Download PDF
           </button>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
-            <button onClick={handlePreviousDay} disabled={currentDay === 0} className={`p-2 rounded-md ${currentDay === 0 ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600'}`}>
+            <button
+              onClick={handlePreviousDay}
+              disabled={currentDay === 0}
+              className={`p-2 rounded-md ${
+                currentDay === 0
+                  ? "bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                  : "bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600"
+              }`}
+            >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <div className="flex items-center">
               <Calendar className="h-5 w-5 text-teal-600 dark:text-teal-500 mr-2" />
               <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                Day {currentDay + 1} - {eldData.date}
+                Day {currentDay + 1} - {log?.date}
               </h2>
             </div>
-            <button onClick={handleNextDay} disabled={currentDay === totalDays - 1} className={`p-2 rounded-md ${currentDay === totalDays - 1 ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600'}`}>
+            <button
+              onClick={handleNextDay}
+              disabled={currentDay === logs.length - 1}
+              className={`p-2 rounded-md ${
+                currentDay === logs.length - 1
+                  ? "bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                  : "bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600"
+              }`}
+            >
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>
@@ -228,21 +125,33 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({
             <div className="flex items-center justify-center mb-4">
               <div className="w-full max-w-3xl h-16 bg-slate-200 dark:bg-slate-700 rounded-lg relative">
                 {/* Visual representation of HOS */}
-                <div className="absolute inset-y-0 left-0 bg-green-500 dark:bg-green-600" style={{
-                width: '29%'
-              }}></div>
-                <div className="absolute inset-y-0 bg-yellow-500 dark:bg-yellow-600" style={{
-                left: '29%',
-                width: '12%'
-              }}></div>
-                <div className="absolute inset-y-0 bg-green-500 dark:bg-green-600" style={{
-                left: '41%',
-                width: '25%'
-              }}></div>
-                <div className="absolute inset-y-0 bg-purple-500 dark:bg-purple-600" style={{
-                left: '66%',
-                width: '34%'
-              }}></div>
+                <div
+                  className="absolute inset-y-0 left-0 bg-green-500 dark:bg-green-600"
+                  style={{
+                    width: "29%",
+                  }}
+                ></div>
+                <div
+                  className="absolute inset-y-0 bg-yellow-500 dark:bg-yellow-600"
+                  style={{
+                    left: "29%",
+                    width: "12%",
+                  }}
+                ></div>
+                <div
+                  className="absolute inset-y-0 bg-green-500 dark:bg-green-600"
+                  style={{
+                    left: "41%",
+                    width: "25%",
+                  }}
+                ></div>
+                <div
+                  className="absolute inset-y-0 bg-purple-500 dark:bg-purple-600"
+                  style={{
+                    left: "66%",
+                    width: "34%",
+                  }}
+                ></div>
                 {/* Time markers */}
                 <div className="absolute top-full left-0 text-xs text-slate-600 dark:text-slate-400 mt-1">
                   00:00
@@ -299,12 +208,24 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {eldData.entries.map((entry, index) => <tr key={index} className={index % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-750'}>
+                {log?.entries.map((entry, index) => (
+                  <tr
+                    key={index}
+                    className={
+                      index % 2 === 0
+                        ? "bg-white dark:bg-slate-800"
+                        : "bg-slate-50 dark:bg-slate-750"
+                    }
+                  >
                     <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-200">
                       {entry.start} - {entry.end}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-1 rounded-md text-xs font-medium ${getStatusColor(entry.status)}`}>
+                      <span
+                        className={`inline-block px-2 py-1 rounded-md text-xs font-medium ${getStatusColor(
+                          entry.status
+                        )}`}
+                      >
                         {entry.status}
                       </span>
                     </td>
@@ -314,7 +235,8 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({
                     <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-200">
                       {entry.notes}
                     </td>
-                  </tr>)}
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -330,20 +252,24 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Driving:</span> 8.0 hrs
+                    <span className="font-medium">Driving:</span>{" "}
+                    {log?.drivingHours || 0} hrs
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">On Duty:</span> 2.5 hrs
+                    <span className="font-medium">On Duty:</span>{" "}
+                    {log?.onDutyHours || 0} hrs
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Off Duty:</span> 0.0 hrs
+                    <span className="font-medium">Off Duty:</span>{" "}
+                    {log?.offDutyHours || 0} hrs
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Sleeper:</span> 10.0 hrs
+                    <span className="font-medium">Sleeper:</span>{" "}
+                    {log?.sleeperHours || 0} hrs
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Cycle Remaining:</span> 62.0
-                    hrs
+                    <span className="font-medium">Cycle Remaining:</span>{" "}
+                    {log?.cycleRemaining || 0} hrs
                   </p>
                 </div>
               </div>
@@ -354,17 +280,20 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Truck #:</span> TRK-12345
+                    <span className="font-medium">Truck #:</span>{" "}
+                    {tripData.truckNumber}
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Odometer Start:</span> 45,678
-                    mi
+                    <span className="font-medium">Odometer Start:</span>{" "}
+                    {tripData.odometerStart || 0} mi
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Odometer End:</span> 46,089 mi
+                    <span className="font-medium">Odometer End:</span>{" "}
+                    {tripData.odometerEnd || 0} mi
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Distance:</span> 411 mi
+                    <span className="font-medium">Distance:</span>{" "}
+                    {tripData.distance || 0} mi
                   </p>
                 </div>
               </div>
@@ -375,29 +304,37 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Driver:</span> John Doe
+                    <span className="font-medium">Driver:</span>{" "}
+                    {tripData.driverName}
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Driver ID:</span> DRV-9876
+                    <span className="font-medium">Driver ID:</span>{" "}
+                    {tripData.driverId}
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Certified:</span> Yes
+                    <span className="font-medium">Certified:</span>{" "}
+                    {tripData.isCertified ? "Yes" : "No"}
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium">Timestamp:</span>{' '}
-                    {eldData.date} 23:59
+                    <span className="font-medium">Timestamp:</span> {log?.date}{" "}
+                    {log?.endTime}
                   </p>
                 </div>
               </div>
             </div>
           </div>
           <div className="mt-8 flex justify-between">
-            <Link to="/route-details" className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-md hover:bg-slate-300 dark:hover:bg-slate-600">
+            <Link
+              to="/route-details"
+              className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-md hover:bg-slate-300 dark:hover:bg-slate-600"
+            >
               Back to Route
             </Link>
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default EldLogsPage;
