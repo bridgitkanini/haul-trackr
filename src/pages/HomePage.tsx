@@ -1,20 +1,47 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import TripForm from '../components/TripForm';
-import { TripData } from '../types/tripTypes';
-import { Truck, BarChart } from 'lucide-react';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import TripForm from "../components/TripForm";
+import { TripData } from "../types/tripTypes";
+import { Truck, BarChart } from "lucide-react";
 interface HomePageProps {
   onTripSubmit: (data: TripData) => void;
 }
-const HomePage: React.FC<HomePageProps> = ({
-  onTripSubmit
-}) => {
+const HomePage: React.FC<HomePageProps> = ({ onTripSubmit }) => {
   const navigate = useNavigate();
   const handleSubmit = (data: TripData) => {
     onTripSubmit(data);
-    navigate('/route-details');
+    navigate("/route-details");
   };
-  return <div className="w-full min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+  return (
+    <div className="w-full min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      {/* Hero Section */}
+      <div className="w-full flex justify-center items-center py-8 md:py-12 relative">
+        {/* Left Green Circle */}
+        <div className="hidden md:block absolute left-56 top-2 z-0">
+          <div className="w-32 h-32 bg-[#14B8A6] rounded-full opacity-90"></div>
+        </div>
+        {/* Mobile Left Green Circle */}
+        <div className="md:hidden absolute -left-6 top-4 z-0">
+          <div className="w-16 h-16 bg-teal-700 rounded-full opacity-90"></div>
+        </div>
+        <div className="w-full max-w-4xl px-4 relative z-10">
+          <img
+            src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            alt="Truck on highway"
+            className="w-full h-64 md:h-80 object-cover rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 bg-white"
+            style={{ objectPosition: "center" }}
+          />
+        </div>
+        {/* Right Green Circle */}
+        <div className="hidden md:block absolute right-56 -bottom-6 z-0">
+          <div className="w-48 h-48 bg-teal-700 rounded-full opacity-90"></div>
+        </div>
+        {/* Mobile Right Green Circle */}
+        <div className="md:hidden absolute -right-6 bottom-4 z-0">
+          <div className="w-16 h-16 bg-teal-700 rounded-full opacity-90"></div>
+        </div>
+      </div>
+      {/* Main Content */}
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
@@ -67,9 +94,13 @@ const HomePage: React.FC<HomePageProps> = ({
           <div className="grid md:grid-cols-5 gap-8">
             <div className="md:col-span-2 flex items-center justify-center">
               <div className="relative w-full max-w-md">
-                <div className="absolute -top-6 -left-6 w-24 h-24 bg-teal-500 rounded-full opacity-20"></div>
-                <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-teal-700 rounded-full opacity-20"></div>
-                <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Truck on highway" className="w-full h-auto rounded-lg shadow-lg relative z-10" />
+                <div className="absolute -top-6 -left-6 w-24 h-24 bg-[#14B8A6] rounded-full"></div>
+                <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-teal-700 rounded-full"></div>
+                <img
+                  src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+                  alt="Truck on highway"
+                  className="w-full h-auto rounded-lg shadow-lg relative z-10"
+                />
               </div>
             </div>
             <div className="md:col-span-3">
@@ -78,6 +109,7 @@ const HomePage: React.FC<HomePageProps> = ({
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 export default HomePage;
