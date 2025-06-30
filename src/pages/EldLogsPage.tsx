@@ -9,7 +9,7 @@ import {
   Truck,
 } from "lucide-react";
 import { TripData } from "../types/tripTypes";
-import { getLogs, generateLogs, getLog } from "../lib/api";
+import { getLogs, generateLogs, getLog, getLogGrid } from "../lib/api";
 
 interface EldLogsPageProps {
   tripData: TripData;
@@ -25,6 +25,7 @@ interface LogEntry {
 
 const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
   const [logs, setLogs] = useState<any[]>([]);
+  const [logGrids, setLogGrids] = useState<(string | null)[]>([]);
   const [currentDay, setCurrentDay] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,6 +42,23 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
           (log: any) => log.trip === (tripData as any).id
         );
         setLogs(tripLogs);
+        // Fetch log grid images for each log
+        const gridPromises = tripLogs.map(async (log: any) => {
+          try {
+            const res = await getLog(log.id);
+            if (res.data && res.data.id) {
+              const gridRes = await getLogGrid(res.data.id);
+              const blob = new Blob([gridRes.data], {
+                type: gridRes.headers["content-type"],
+              });
+              return URL.createObjectURL(blob);
+            }
+          } catch {
+            return null;
+          }
+        });
+        const grids = await Promise.all(gridPromises);
+        setLogGrids(grids);
         setIsLoading(false);
       } catch (err) {
         setIsLoading(false);
@@ -60,6 +78,7 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
   };
 
   const log = logs[currentDay];
+  const logGrid = logGrids[currentDay];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -197,6 +216,16 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
               </div>
             </div>
           </div>
+          {/* Log Grid Visualization */}
+          {logGrid && (
+            <div className="flex justify-center mb-8">
+              <img
+                src={logGrid}
+                alt="ELD Log Grid"
+                className="w-full max-w-3xl rounded shadow border border-slate-200 dark:border-slate-700"
+              />
+            </div>
+          )}
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
@@ -338,6 +367,73 @@ const EldLogsPage: React.FC<EldLogsPageProps> = ({ tripData }) => {
                 </div>
               </div>
             </div>
+          </div>
+          {/* Duty Status Changes Table */}
+          <div className="overflow-x-auto mt-8">
+            <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-white">
+              Duty Status Changes
+            </h3>
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-slate-100 dark:bg-slate-700">
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">
+                    Start Time
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">
+                    End Time
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">
+                    Location
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">
+                    Odometer
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">
+                    Remarks
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">
+                    Duration (hrs)
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {log?.duty_status_changes?.map((change: any, idx: number) => (
+                  <tr
+                    key={idx}
+                    className={
+                      idx % 2 === 0
+                        ? "bg-white dark:bg-slate-800"
+                        : "bg-slate-50 dark:bg-slate-750"
+                    }
+                  >
+                    <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-200">
+                      {change.status_display || change.status}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-200">
+                      {change.start_time}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-200">
+                      {change.end_time}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-200">
+                      {change.location}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-200">
+                      {change.odometer}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-200">
+                      {change.remarks}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-200">
+                      {change.duration_hours}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
           <div className="mt-8 flex justify-between">
             <Link
